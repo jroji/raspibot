@@ -1,0 +1,21 @@
+{
+  "name": "raspibot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "serve ./src/web",
+    "robot": "node ./src/robot/main.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.17.1",
+    "firebase": "^4.6.2",
+    "firebase-admin": "^5.5.0",
+    "google-cloud": "^0.57.0",
+    "pi-gpio": "0.0.8",
+    "serve": "latest"
+  },
+  "description": ""
+}
