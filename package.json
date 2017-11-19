@@ -10,11 +10,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.0",
     "axios": "^0.17.1",
     "firebase": "^4.6.2",
     "firebase-admin": "^5.5.0",
     "google-cloud": "^0.57.0",
-    "pi-gpio": "0.0.8",
+    "rpi-gpio": "^0.9.1",
     "serve": "latest"
   },
   "description": ""

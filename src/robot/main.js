@@ -9,6 +9,6 @@ const ordersRef = firebase.database().ref('orders');
 const imagesRef = firebase.database().ref('labels');
 
 const robot = new Robot(ordersRef);
-const imageAnalyzer = new ImageAnalyzer(imagesRef);
+//const imageAnalyzer = new ImageAnalyzer(imagesRef);
 
-imageAnalyzer.setImage('https://cdn-images-1.medium.com/fit/c/200/200/0*j9i4MuiHL7VuyYNf.jpeg');
+//imageAnalyzer.setImage('https://cdn-images-1.medium.com/fit/c/200/200/0*j9i4MuiHL7VuyYNf.jpeg');

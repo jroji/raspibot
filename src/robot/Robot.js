@@ -2,8 +2,7 @@
 const CONFIG   = require('./environment.js');
 const async = require('async');
 const firebase = require('firebase');
-//const gpio  = require('pi-gpio');
-const gpio = {open: () => {}, write: () => {}};
+const gpio  = require('pi-gpio');
 
 class Robot {
 
@@ -52,49 +51,58 @@ class Robot {
 
   initPins() {
     const motors = {
-      leftFront: 11,
-      leftBack: 12,
-      rightFront: 15,
-      rightBack: 16
+      leftFront: 16,
+      leftBack: 13,
+      rightFront: 18,
+      rightBack: 15
     };
 
-    for (let motor of Object.keys(motors)) {
-      gpio.open(motors[motor], "output");
-    }
+    async.parallel([
+      (callback) => { gpio.open(motors.leftFront, gpio.DIR_OUT, callback); },
+      (callback) => { gpio.open(motors.leftBack, gpio.DIR_OUT, callback); },
+      (callback) => { gpio.open(motors.rightFront, gpio.DIR_OUT, callback); },
+      (callback) => { gpio.open(motors.rightBack, gpio.DIR_OUT, callback); },
+    ]);
 
     return motors;
   }
 
   goForward() {
     async.parallel([
-      gpio.write(this.motors.leftFront, 1),
-      gpio.write(this.motors.rightFront, 1)
+      gpio.write(this.motors.leftFront, true),
+      gpio.write(this.motors.rightFront, true)
     ]);
   }
 
   goBackwards() {
     async.parallel([
-      gpio.write(this.motors.leftBack, 1),
-      gpio.write(this.motors.rightBack, 1)
+      gpio.write(this.motors.leftBack, true),
+      gpio.write(this.motors.rightBack, true)
     ]);
   }
 
   goLeft() {
-    gpio.write(this.motors.leftFront, 1);
+    gpio.write(this.motors.rightFront, true);
   }
 
   goRight(){
-    gpio.write(this.motors.rightFront, 1);
+    gpio.write(this.motors.leftFront, true);
   }
 
   stop() {
-    /*async.parallel([
-      gpio.write(this.motors.leftFront, 0),
-      gpio.write(this.motors.leftBack, 0),
-      gpio.write(this.motors.rightFront, 0),
-      gpio.write(this.motors.rightBack, 0)
-    ]);*/
-  } 
+    async.parallel([
+      gpio.write(this.motors.leftFront, false),
+      gpio.write(this.motors.leftBack, false),
+      gpio.write(this.motors.rightFront, false),
+      gpio.write(this.motors.rightBack, false)
+    ]);
+  }
+
+  closePins() {
+    gpio.destroy(function() {
+        console.log('All pins unexported');
+    });
+  }
 }
 
 module.exports = Robot;
