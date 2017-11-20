@@ -3,26 +3,54 @@ const CONFIG   = require('./environment.js');
 const axios    = require('axios');
 const firebase = require('firebase');
 const googleStorage = require('@google-cloud/storage');
+const spawn = require('child_process').spawn;
+const fs = require('fs');
 
 class ImageAnalyzer {
 
   constructor(firebaseRef) {
-    if (!firebaseRef) {
-      firebase.initializeApp(CONFIG.firebase);
-      firebaseRef = firebase.database().ref('labels');
-    }
-    // Image URI to be analyzed by Cloud Vision
-    this.firebaseRef = firebaseRef;
+    this._firebaseRef = this._setFirebaseApp(firebaseRef, CONFIG);
+    this.bucket = this._setGCloud(CONFIG);
+    this.raspistill = spawn('raspistill', ['-w', '640', '-h', '480', '-q', '5', '-o', '/tmp/stream/pic.jpg', '-tl', '1000', '-t', '9999999', '-th', '0:0:0', '-n', '-rot', '180']);    
+  }
+
+  /**
+   * Set and connect to GCloud Storage
+   * @param {Object} config 
+   * @return {Object}
+   */
+  _setGCBucket(config) {
     const storage = googleStorage({
-      projectId: CONFIG.GCId,
-      keyFilename: CONFIG.keyFilename
+      projectId: config.GCId,
+      keyFilename: config.keyFilename
     });
 
-    this.bucket = storage.bucket(CONFIG.bucketName);
-    this.bucket.upload('./test.jpg', (err, file) => {
-      console.log(file);
-      console.log(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/${file.name}`);
-      this.setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/${file.name}`);
+    return storage.bucket(config.bucketName);
+  }
+
+  /**
+   * Set and connect to firebase
+   * @param {*} firebaseRef 
+   * @return {Object}
+   */
+  _setFirebaseApp(firebaseRef, config) {
+    if (!firebaseRef) {
+      firebase.initializeApp(config.firebase);
+      firebaseRef = firebase.database().ref('labels');
+    }
+    return firebaseRef;
+  }
+
+  /**
+   * Start streaming
+   */
+  capture() {
+    var args = ["-w", "640", "-h", "480", "-o", "./stream/image_stream.jpg", "-t", "999999999", "-tl", "100"];
+    proc = spawn('raspistill', args);
+    fs.watchFile('./stream/image_stream.jpg', function(current, previous) {
+      this.bucket.upload('./test.jpg', (err, file) => {
+        this.setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/${file.name}`);
+      });
     });
   }
 
@@ -30,7 +58,7 @@ class ImageAnalyzer {
    * Set the image to be analyzed
    * @param {string} imageURI
    */
-  setImage(imageURI) {
+  _setImage(imageURI) {
     this.imageURI = imageURI;
     this.analyzeImage(this.imageURI);
   }
@@ -39,13 +67,12 @@ class ImageAnalyzer {
    * Analayze image requesting to gc uri
    * @param {String} imageURI
    */
-  async analyzeImage(imageURI) {
+  async _analyzeImage(imageURI) {
     let response = await axios.post(
       CONFIG.GCVUri(CONFIG.GCKey),
-      this.constructRequest(this.imageURI, 'LABEL_DETECTION')
+      this._constructRequest(this.imageURI, 'LABEL_DETECTION')
     );
-    console.log(response.data.responses[0]);
-    this.firebaseRef.set(response.data.responses[0].labelAnnotations);
+    this._firebaseRef.set(response.data.responses[0].labelAnnotations);
   }
 
   /**
@@ -53,7 +80,7 @@ class ImageAnalyzer {
    * @param {string} image
    * @param {string} type
    */
-  constructRequest(image = this.imageURI, type = 'LABEL_DETECTION') {
+  _constructRequest(image = this.imageURI, type = 'LABEL_DETECTION') {
     return {
       "requests": [
         {
