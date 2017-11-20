@@ -19,7 +19,7 @@ class ImageAnalyzer {
     });
 
     this.bucket = storage.bucket(CONFIG.bucketName);
-    this.bucket.upload('./Vd3MJo.jpg', (err, file) => {
+    this.bucket.upload('./test.jpg', (err, file) => {
       console.log(file);
       console.log(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/${file.name}`);
       this.setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/${file.name}`);

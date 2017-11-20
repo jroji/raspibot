@@ -3,18 +3,26 @@ var init = function() {
   var config = {
     apiKey: "",
     authDomain: "raspibot-21ac3.firebaseapp.com",
-    databaseURL: "https://raspibot-21ac3.firebaseio.com"
+    databaseURL: "https://raspibot-21ac3.firebaseio.com",
+    storageBucket: "raspibot-21ac3.appspot.com",
   };
-  
+
   firebase.initializeApp(config);
 
   const ordersRef = firebase.database().ref('orders');
   const labelsRef = firebase.database().ref('labels');
-  
+  const storage = firebase.storage().ref('test.jpg');
+
   ordersRef.on('value', ordersListener);
   labelsRef.on('value', labelsListener);
 
   setButtonListeners(ordersRef);
+
+  console.log(storage);
+
+  storage.getDownloadURL().then(function(url) {
+    document.querySelector("img").setAttribute('src', url);
+  });
 }
 
 var ordersListener = function(snapshot) {

@@ -71,6 +71,16 @@ body {
     padding: 5px 0;
 }
 
+img {
+    max-height: 50vh;
+    width: 50%;
+    min-width: 500px;
+    align-self: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid gray;
+}
+
 @media screen and (max-width: 768px) {
     .main__col--8,
     .main__col--4 {
