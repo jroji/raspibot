@@ -5,5 +5,8 @@ module.exports = {
     databaseURL: "",
   },
   GCKey: '',
-  GCVUri: key => ``
+  GCVUri: key => ``,
+  GCId: '',
+  bucketName: '',
+  keyFilename: ''
 };
