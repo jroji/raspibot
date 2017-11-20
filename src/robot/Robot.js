@@ -2,7 +2,7 @@
 const CONFIG   = require('./environment.js');
 const async = require('async');
 const firebase = require('firebase');
-const gpio  = require('pi-gpio');
+const gpio  = require('rpi-gpio');
 
 class Robot {
 
@@ -20,31 +20,32 @@ class Robot {
 
   listenOrders() {
     this.firebaseRef.on('value', (snapshot) => {
-      const direction = snapshot.val();
+      const direction = snapshot.val().direction;
       this.updateDirection(direction);
     });
   }
 
   updateDirection(direction) {
+    console.log('GOING ' + direction);
     switch (direction) {
       case 'F': {
-        this.goForward();
+        this.stop(() => { this.goForward(); });
         break;
       }
       case 'L': {
-        this.goLeft();
+        this.stop(() => { this.goLeft(); });
         break;
       }
       case 'R': {
-        this.goRight();
+        this.stop(() => { this.goRight(); });
         break;
       }
       case 'B': {
-        this.goBackwards();
+        this.stop(() => { this.goBackwards(); });
         break;
       }
       default: {
-        this.stop();
+        this.stop(() => {});
       }
     }
   }
@@ -58,10 +59,10 @@ class Robot {
     };
 
     async.parallel([
-      (callback) => { gpio.open(motors.leftFront, gpio.DIR_OUT, callback); },
-      (callback) => { gpio.open(motors.leftBack, gpio.DIR_OUT, callback); },
-      (callback) => { gpio.open(motors.rightFront, gpio.DIR_OUT, callback); },
-      (callback) => { gpio.open(motors.rightBack, gpio.DIR_OUT, callback); },
+      (callback) => { gpio.setup(motors.leftFront, gpio.DIR_OUT, callback); },
+      (callback) => { gpio.setup(motors.leftBack, gpio.DIR_OUT, callback); },
+      (callback) => { gpio.setup(motors.rightFront, gpio.DIR_OUT, callback); },
+      (callback) => { gpio.setup(motors.rightBack, gpio.DIR_OUT, callback); },
     ]);
 
     return motors;
@@ -69,15 +70,15 @@ class Robot {
 
   goForward() {
     async.parallel([
-      gpio.write(this.motors.leftFront, true),
-      gpio.write(this.motors.rightFront, true)
+      (callback) => { gpio.write(this.motors.leftFront, true, callback)},
+      (callback) => { gpio.write(this.motors.rightFront, true, callback)}
     ]);
   }
 
   goBackwards() {
     async.parallel([
-      gpio.write(this.motors.leftBack, true),
-      gpio.write(this.motors.rightBack, true)
+      (callback) => { gpio.write(this.motors.leftBack, true, callback)},
+      (callback) => { gpio.write(this.motors.rightBack, true, callback)}
     ]);
   }
 
@@ -88,14 +89,14 @@ class Robot {
   goRight(){
     gpio.write(this.motors.leftFront, true);
   }
-
-  stop() {
+  
+  stop(afterCallback) {
     async.parallel([
-      gpio.write(this.motors.leftFront, false),
-      gpio.write(this.motors.leftBack, false),
-      gpio.write(this.motors.rightFront, false),
-      gpio.write(this.motors.rightBack, false)
-    ]);
+      (callback) => { gpio.write(this.motors.leftFront, false, callback)},
+      (callback) => { gpio.write(this.motors.leftBack, false, callback)},
+      (callback) => { gpio.write(this.motors.rightFront, false, callback)},
+      (callback) => { gpio.write(this.motors.rightBack, false, callback)},
+    ], () => { afterCallback() });
   }
 
   closePins() {
