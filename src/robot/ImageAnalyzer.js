@@ -5,13 +5,19 @@ const firebase = require('firebase');
 const googleStorage = require('@google-cloud/storage');
 const spawn = require('child_process').spawn;
 const fs = require('fs');
+const Raspistill = require('node-raspistill').Raspistill;
 
 class ImageAnalyzer {
 
   constructor(firebaseRef) {
     this._firebaseRef = this._setFirebaseApp(firebaseRef, CONFIG);
-    this.bucket = this._setGCloud(CONFIG);
-    this.raspistill = spawn('raspistill', ['-w', '640', '-h', '480', '-q', '5', '-o', '/tmp/stream/pic.jpg', '-tl', '1000', '-t', '9999999', '-th', '0:0:0', '-n', '-rot', '180']);    
+    this.bucket = this._setGCBucket(CONFIG);
+    this.camera = new Raspistill({
+        fileName: 'test',
+        verticalFlip: true,
+        width: 640,
+        height: 480
+    });
   }
 
   /**
@@ -24,7 +30,6 @@ class ImageAnalyzer {
       projectId: config.GCId,
       keyFilename: config.keyFilename
     });
-
     return storage.bucket(config.bucketName);
   }
 
@@ -45,11 +50,12 @@ class ImageAnalyzer {
    * Start streaming
    */
   capture() {
-    var args = ["-w", "640", "-h", "480", "-o", "./stream/image_stream.jpg", "-t", "999999999", "-tl", "100"];
-    proc = spawn('raspistill', args);
-    fs.watchFile('./stream/image_stream.jpg', function(current, previous) {
-      this.bucket.upload('./test.jpg', (err, file) => {
-        this.setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/${file.name}`);
+    this.camera.takePhoto().then((photo) => {
+      this.bucket.upload('./photos/test.jpg', (err, file) => {
+        this._setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/test.jpg`);
+        setTimeout(() => {
+          this.capture();
+        }, 6000);
       });
     });
   }
@@ -60,7 +66,7 @@ class ImageAnalyzer {
    */
   _setImage(imageURI) {
     this.imageURI = imageURI;
-    this.analyzeImage(this.imageURI);
+    this._analyzeImage(this.imageURI);
   }
 
   /**
@@ -103,5 +109,3 @@ class ImageAnalyzer {
 }
 
 module.exports = ImageAnalyzer;
-
-new ImageAnalyzer();
