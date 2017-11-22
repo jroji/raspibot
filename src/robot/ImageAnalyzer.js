@@ -13,10 +13,11 @@ const Raspistill = require('node-raspistill').Raspistill;
  */
 class ImageAnalyzer {
 
-  constructor(firebaseRef) {
-    this._firebaseRef = this._setFirebaseApp(firebaseRef, CONFIG);
+  constructor(firebaseRef, timeRef) {
+    this._firebaseRef = this._setFirebaseApp(firebaseRef, CONFIG, 'labels');
+    this._timeRef = this._setFirebaseApp(timeRef, CONFIG, 'lastImage');
     this._bucket = this._setGCBucket(CONFIG);
-
+    this.counter = 0;
     // Configure the camera in photo mode, with specified height and direction
     this.camera = new Raspistill({
         fileName: 'raspicamera',
@@ -44,10 +45,10 @@ class ImageAnalyzer {
    * @param {*} firebaseRef
    * @return {Object}
    */
-  _setFirebaseApp(firebaseRef, config) {
+  _setFirebaseApp(firebaseRef, config, endpoint) {
     if (!firebaseRef) {
       firebase.initializeApp(config.firebase);
-      firebaseRef = firebase.database().ref('labels');
+      firebaseRef = firebase.database().ref(endpoint);
     }
     return firebaseRef;
   }
@@ -58,10 +59,14 @@ class ImageAnalyzer {
   async capture() {
     let photo = await this.camera.takePhoto();
     this._bucket.upload('./photos/raspicamera.jpg', (err, file) => {
-      this._setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/raspicamera.jpg`);
+      this._timeRef.set(Date.now());
+      if (counter % 6 === 0) {
+        this._setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/raspicamera.jpg`);
+      }
       setTimeout(() => {
+        this.counter++;
         this.capture();
-      }, 3000);
+      }, 1000);
     });
   }
 

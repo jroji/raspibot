@@ -8,7 +8,8 @@ const firebaseApp = firebase.database();
 
 const ordersRef = firebaseApp.ref('orders');
 const imagesRef = firebaseApp.ref('labels');
+const timeRef = firebaseApp.ref('lastImage');
 
 const skynet = new Robot(ordersRef);
-const imageAnalyzer = new ImageAnalyzer(imagesRef);
+const imageAnalyzer = new ImageAnalyzer(imagesRef, timeRef);
 imageAnalyzer.capture();

@@ -1,5 +1,4 @@
 (() => {
-  let storage;
 
   const init = function() {
 
@@ -14,10 +13,12 @@
 
     const ordersRef = firebase.database().ref('orders');
     const labelsRef = firebase.database().ref('labels');
+    const imageRef = firebase.database().ref('lastImage');
     storage = firebase.storage();
 
     ordersRef.on('value', ordersListener);
     labelsRef.on('value', labelsListener);
+    imageRef.on('value', () => { listenAndUpdateImage(storage); });
 
     setButtonListeners(ordersRef);
   }
