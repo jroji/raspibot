@@ -18,6 +18,9 @@ class Robot {
     this.listenOrders();
   }
 
+  /**
+   * Initialize the firebase listener in order to update direction
+   */
   listenOrders() {
     this.firebaseRef.on('value', (snapshot) => {
       const direction = snapshot.val().direction;
@@ -25,6 +28,11 @@ class Robot {
     });
   }
 
+  /**
+   * Logs and update direction based on firebase orders
+   * Require to call stop first, in order to reset the motor status
+   * @param {String} direction
+   */
   updateDirection(direction) {
     console.log('GOING ' + direction);
     switch (direction) {
@@ -50,6 +58,9 @@ class Robot {
     }
   }
 
+  /**
+   * Setup the motor pins and open them in write mode
+   */
   initPins() {
     const motors = {
       leftFront: 16,
@@ -68,6 +79,9 @@ class Robot {
     return motors;
   }
 
+  /**
+   * Set the motors status moving forwards
+   */
   goForward() {
     async.parallel([
       (callback) => { gpio.write(this.motors.leftFront, true, callback)},
@@ -75,6 +89,9 @@ class Robot {
     ]);
   }
 
+  /**
+   * Set the motors status moving backwards
+   */
   goBackwards() {
     async.parallel([
       (callback) => { gpio.write(this.motors.leftBack, true, callback)},
@@ -82,14 +99,23 @@ class Robot {
     ]);
   }
 
+   /**
+   * Set the motors status moving left
+   */
   goLeft() {
     gpio.write(this.motors.rightFront, true);
   }
 
+  /**
+   * Set the motors status moving right
+   */
   goRight(){
     gpio.write(this.motors.leftFront, true);
   }
-  
+
+  /**
+   * Set the motors status to stop
+   */
   stop(afterCallback) {
     async.parallel([
       (callback) => { gpio.write(this.motors.leftFront, false, callback)},
@@ -99,6 +125,9 @@ class Robot {
     ], () => { afterCallback() });
   }
 
+  /**
+   * Set the motors status moving forwards
+   */
   closePins() {
     gpio.destroy(function() {
         console.log('All pins unexported');

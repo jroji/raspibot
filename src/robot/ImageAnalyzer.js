@@ -7,13 +7,19 @@ const spawn = require('child_process').spawn;
 const fs = require('fs');
 const Raspistill = require('node-raspistill').Raspistill;
 
+/**
+ * Receives or create a firebase reference. Take pictures and upload to GCS
+ * @param {Object} firebaseRef: Firebase labels node reference
+ */
 class ImageAnalyzer {
 
   constructor(firebaseRef) {
     this._firebaseRef = this._setFirebaseApp(firebaseRef, CONFIG);
-    this.bucket = this._setGCBucket(CONFIG);
+    this._bucket = this._setGCBucket(CONFIG);
+
+    // Configure the camera in photo mode, with specified height and direction
     this.camera = new Raspistill({
-        fileName: 'test',
+        fileName: 'raspicamera',
         verticalFlip: true,
         width: 640,
         height: 480
@@ -22,7 +28,7 @@ class ImageAnalyzer {
 
   /**
    * Set and connect to GCloud Storage
-   * @param {Object} config 
+   * @param {Object} config
    * @return {Object}
    */
   _setGCBucket(config) {
@@ -35,7 +41,7 @@ class ImageAnalyzer {
 
   /**
    * Set and connect to firebase
-   * @param {*} firebaseRef 
+   * @param {*} firebaseRef
    * @return {Object}
    */
   _setFirebaseApp(firebaseRef, config) {
@@ -49,14 +55,13 @@ class ImageAnalyzer {
   /**
    * Start streaming
    */
-  capture() {
-    this.camera.takePhoto().then((photo) => {
-      this.bucket.upload('./photos/test.jpg', (err, file) => {
-        this._setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/test.jpg`);
-        setTimeout(() => {
-          this.capture();
-        }, 6000);
-      });
+  async capture() {
+    let photo = await this.camera.takePhoto();
+    this._bucket.upload('./photos/raspicamera.jpg', (err, file) => {
+      this._setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/raspicamera.jpg`);
+      setTimeout(() => {
+        this.capture();
+      }, 3000);
     });
   }
 

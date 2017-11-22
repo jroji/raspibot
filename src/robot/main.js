@@ -4,10 +4,11 @@ const ImageAnalyzer = require('./ImageAnalyzer.js');
 const firebase      = require('firebase');
 
 firebase.initializeApp(CONFIG.firebase);
+const firebaseApp = firebase.database();
 
-const ordersRef = firebase.database().ref('orders');
-const imagesRef = firebase.database().ref('labels');
+const ordersRef = firebaseApp.ref('orders');
+const imagesRef = firebaseApp.ref('labels');
 
-const robot = new Robot(ordersRef);
+const skynet = new Robot(ordersRef);
 const imageAnalyzer = new ImageAnalyzer(imagesRef);
 imageAnalyzer.capture();
