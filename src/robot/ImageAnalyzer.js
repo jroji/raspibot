@@ -60,7 +60,7 @@ class ImageAnalyzer {
     let photo = await this.camera.takePhoto();
     this._bucket.upload('./photos/raspicamera.jpg', (err, file) => {
       this._timeRef.set(Date.now());
-      if (counter % 6 === 0) {
+      if (this.counter % 6 === 0) {
         this._setImage(`https://storage.googleapis.com/${CONFIG.GCId}.appspot.com/raspicamera.jpg`);
       }
       setTimeout(() => {
