@@ -66,7 +66,7 @@ class ImageAnalyzer {
       setTimeout(() => {
         this.counter++;
         this.capture();
-      }, 1000);
+      }, 2000);
     });
   }
 
